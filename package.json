@@ -1,0 +1,51 @@
+{
+  "name": "kxco-pq-scan",
+  "version": "1.0.0",
+  "description": "Find quantum-vulnerable cryptography in a JavaScript dependency tree. Separates what Shor's algorithm breaks from what Grover's only weakens, recognises hybrid constructions, and says what it cannot see.",
+  "keywords": [
+    "post-quantum",
+    "pqc",
+    "quantum",
+    "cryptography",
+    "dependency",
+    "audit",
+    "supply-chain",
+    "migration",
+    "sbom",
+    "ml-kem",
+    "ml-dsa"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    }
+  },
+  "bin": {
+    "kxco-pq-scan": "./bin/kxco-pq-scan.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/scan.test.js"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "license": "Apache-2.0",
+  "author": "KXCO by Knightsbridge",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KnightsbridgeAIQ/kxco-pq-scan.git"
+  },
+  "homepage": "https://kxco.ai",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

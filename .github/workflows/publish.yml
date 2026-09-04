@@ -1,0 +1,87 @@
+name: publish
+
+# Triggered by pushing a v* tag (e.g. v1.1.1), or manually via the Actions
+# UI / GitHub API by dispatching with a tag name.
+#
+# Auth path: npm Trusted Publishing via GitHub Actions OIDC.
+# Registered at https://www.npmjs.com/package/kxco-post-quantum/access
+# binding org=KnightsbridgeAIQ, repo=kxco-post-quantum, workflow=publish.yml.
+# No NPM_TOKEN secret. No NPM_OTP. Nothing rotates, nothing leaks.
+# Provenance is minted automatically by the OIDC publish.
+#
+# The repositories moved from JackKXCO to KnightsbridgeAIQ. Until the npm
+# Trusted Publishing binding is repointed at the new org, this workflow cannot
+# authenticate, and publishing by hand from a workstation produces a release
+# with NO provenance attestation. Verify with:
+#
+#   npm view kxco-post-quantum --json | grep -A5 attestations
+#
+# A release with no attestations block was not published through this path.
+#
+# All third-party actions are pinned by 40-char commit SHA.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Tag or ref to publish (e.g. v1.1.1)'
+        required: true
+        type: string
+
+permissions:
+  # contents: write is needed to attach the SBOM to the GitHub Release. An
+  # Actions artifact is not a published SBOM: it expires on the retention
+  # window and needs an authenticated GitHub session to fetch, so a third party
+  # assessing supply chain posture cannot read it. A release asset is a
+  # permanent unauthenticated URL, which is the thing being claimed.
+  contents: read
+  id-token: write   # required for both Trusted Publishing AND --provenance OIDC
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout tagged commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Setup Node 22 with npm registry
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Upgrade npm CLI to the 11.x line
+        # Trusted Publishing's OIDC integration arrived in npm 11.5.1, and the
+        # npm bundled with the runner's Node is older, so it must be upgraded or
+        # the publish falls through to a 404 PUT.
+        #
+        # Pinned to the 11.x line rather than @latest. This step previously
+        # installed npm@latest, which broke the moment npm 12 shipped: 12.x
+        # requires Node ^22.22 || ^24.15 || >=26, so on the Node 20 this job used
+        # to pin it failed with EBADENGINE and the release never happened. An
+        # unpinned tool install is a scheduled outage; 11.x supports
+        # ^20.17 || >=22.9 and will not drop Node 22 under us.
+        run: npm install -g npm@11
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      # npm prefers Trusted Publishing when a publisher is configured and falls
+      # back to NODE_AUTH_TOKEN otherwise. Both are wired because Trusted
+      # Publishing cannot carry a package's FIRST release: the publisher is
+      # configured on the package's own settings page, which does not exist
+      # until the package does. Once 1.0.0 is out, add the binding and delete
+      # the secret.
+      - name: Publish (Trusted Publishing where configured, token otherwise)
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
