@@ -29,3 +29,12 @@ export declare function scan(dir?: string): ScanResult
 export declare function classify(name: string): CatalogueEntry | null
 export declare const CATALOGUE: Record<string, CatalogueEntry>
 export declare const ENABLERS: Set<string>
+
+/**
+ * A CycloneDX 1.6 Cryptographic Bill of Materials. Typed loosely on purpose:
+ * the authority on the shape is the CycloneDX schema, and a hand-written
+ * interface here would go stale against it without anything failing.
+ */
+export type Cbom = Record<string, unknown>
+
+export declare function toCbom(result: ScanResult, opts?: { now?: Date }): Cbom

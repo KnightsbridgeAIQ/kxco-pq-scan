@@ -16,4 +16,5 @@
 // Treat the output as a place to start looking, not as an inventory.
 
 export { scan } from './scan.js'
+export { toCbom } from './cbom.js'
 export { CATALOGUE, ENABLERS, classify } from './catalogue.js'

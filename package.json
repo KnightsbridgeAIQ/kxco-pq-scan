@@ -1,6 +1,6 @@
 {
   "name": "kxco-pq-scan",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Find quantum-vulnerable cryptography in a JavaScript dependency tree. Separates what Shor's algorithm breaks from what Grover's only weakens, recognises hybrid constructions, and says what it cannot see.",
   "keywords": [
     "post-quantum",
@@ -13,7 +13,12 @@
     "migration",
     "sbom",
     "ml-kem",
-    "ml-dsa"
+    "ml-dsa",
+    "cbom",
+    "cyclonedx",
+    "crypto-inventory",
+    "quantum-readiness",
+    "cryptographic-bill-of-materials"
   ],
   "type": "module",
   "exports": {
@@ -32,7 +37,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test test/scan.test.js"
+    "test": "node --test test/scan.test.js test/cbom.test.js test/cbom.schema.test.js"
   },
   "engines": {
     "node": ">=20.19"
@@ -47,5 +52,9 @@
   "publishConfig": {
     "access": "public",
     "provenance": true
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1"
   }
 }
