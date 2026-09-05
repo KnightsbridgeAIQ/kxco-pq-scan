@@ -6,6 +6,10 @@
 
 Find the cryptography in your dependency tree that a quantum computer breaks.
 
+**Scope: the JavaScript dependency tree only.** Not compiled binaries, not
+hardware modules, not live TLS. It reads a lock file; everything else on the
+list below it cannot see.
+
 ```
 npx kxco-pq-scan
 ```
@@ -136,7 +140,7 @@ Stated here rather than left for you to discover:
   package signing with `RS256` is not. No static read of a lock file can tell
   those apart, so the package is reported and the note says so
 - Anything outside the JavaScript tree: your TLS terminator, your database
-  driver, the certificate on your load balancer
+  driver, the certificate on your load balancer, the firmware in your HSM
 
 It reads a lock file rather than `package.json` on purpose, because the lock
 file records what was installed rather than what was asked for, and the
