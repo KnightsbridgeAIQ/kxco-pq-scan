@@ -82,6 +82,49 @@ const { findings, pq, reduced, total } = scan('.')
 `scan()` returns the same data the CLI prints. `--json` gives you it from the
 command line.
 
+## As a CBOM
+
+```sh
+npx kxco-pq-scan --cbom > cbom.json
+```
+
+CycloneDX 1.6, so the result merges with a scan of your hosts, certificates and
+key stores instead of sitting in a report of its own.
+
+Two things are different from the text output, both on purpose.
+
+It is an **inventory, not a findings list**, so it also carries the symmetric,
+hashing and post-quantum packages. A bill of materials that listed only the
+broken ones would be saying the tree contains no AES, which is false.
+
+It is **reproducible**. The serial number is derived from the packages found, so
+two scans of an unchanged tree produce the same one, and `SOURCE_DATE_EPOCH`
+pins the timestamp. A CI job can then compare two documents byte for byte and
+read a difference as a real change rather than as its own noise.
+
+Each library `provides` the algorithms it implements, in the CycloneDX sense of
+the word, and every judgement the scan made travels with it: the classification,
+the severity, the hybrid context, and which package pulled it in.
+
+What is deliberately absent matters as much:
+
+- **No OID unless it is registered for that exact parameter set.** `ML-DSA-65`
+  carries `2.16.840.1.101.3.4.3.18`; a bare `ML-DSA` carries none, because there
+  is no OID for ML-DSA in the abstract. A consumer matches an OID exactly, so a
+  nearly-right one is worse than none at all.
+- **No security level on symmetric or hash algorithms.** AES-128 and AES-256 sit
+  at different NIST categories and a package name carries neither. The classical
+  asymmetric algorithms do carry `nistQuantumSecurityLevel: 0`, which is the
+  schema's own value for meeting none of the categories, and that much is
+  certain.
+
+The limits below are written into the document itself, because a CBOM travels
+without the command that produced it.
+
+The output is validated against the published CycloneDX 1.6 schema in the test
+suite, together with six deliberately malformed documents that the validator has
+to reject. A gate that never fails is not a gate.
+
 ## What it cannot see
 
 Stated here rather than left for you to discover:
