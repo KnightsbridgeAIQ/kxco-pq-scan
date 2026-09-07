@@ -1,2 +1,5 @@
 node_modules/
 *.log
+
+# Generated evidence bundle. Reproduce with `npm run evidence`.
+dist/

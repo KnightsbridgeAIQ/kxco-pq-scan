@@ -34,10 +34,12 @@
     "src",
     "bin",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "ASSESSMENT.md"
   ],
   "scripts": {
-    "test": "node --test test/scan.test.js test/cbom.test.js test/cbom.schema.test.js"
+    "test": "node --test test/scan.test.js test/cbom.test.js test/cbom.schema.test.js",
+    "evidence": "node scripts/build-evidence.mjs"
   },
   "engines": {
     "node": ">=20.19"
