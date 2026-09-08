@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.1
+
+Documentation and a dependency refresh. No source change.
+
+**ASSESSMENT.md.** Where this package's boundary falls, what cryptographic
+agility it has beyond what the primitives provide, and what constrains its
+lifecycle. It references the `kxco-post-quantum` evidence rather than restating
+it, because a second copy of a conformance claim invites the reader to count it
+twice.
+
+**An evidence bundle.** `npm run evidence` records identity, this package's own
+tests, its SBOM, registry signature verification, and the `kxco-post-quantum`
+version actually installed rather than the range declared.
+
 ## 1.1.0
 
 ### Added
