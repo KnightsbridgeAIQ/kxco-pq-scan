@@ -17,6 +17,20 @@ npx kxco-pq-scan
 No install, no account, no upload. It reads `package-lock.json` on your machine
 and prints what it finds.
 
+## Release integrity
+
+Every release is checkable without asking us for anything.
+
+- **Provenance.** Each release carries a SLSA provenance attestation tying the
+  published tarball to the commit and workflow that built it. Verify with
+  `npm audit signatures kxco-pq-scan`, or read it directly from
+  `registry.npmjs.org/-/npm/v1/attestations/kxco-pq-scan@<version>`.
+- **No dependencies.** This package has none. There is no transitive tree to
+  audit and no upstream that can change what it does between releases, which is
+  an unusual thing for a scanner to be able to say about itself.
+- **Evidence bundle.** `npm run evidence` regenerates identity, the test run,
+  the SBOM and registry signature verification from source.
+
 ## What it actually tells you
 
 ```
