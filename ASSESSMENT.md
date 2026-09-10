@@ -1,91 +1,80 @@
 # Assessment notes
 
-Where this package's boundary falls, what agility it has, and what constrains
-its lifecycle.
+The answers a buyer's readiness assessment asks for: what this package does,
+how it moves when the landscape moves, and what it takes to run it.
 
-This package is different from the rest of the family and the difference should
-be stated first: **it performs no cryptography.** It has no dependencies at all,
-it does not call `kxco-post-quantum`, and it neither signs, verifies, encrypts
-nor derives anything. It reads a lock file and reports what it found.
+## What this package is
 
-So there is no conformance question here, and an assessment should not look for
-one.
+The tool that tells you where to start. It reads a lock file and reports the
+cryptography in a JavaScript dependency tree that a quantum computer breaks.
 
-## Boundary
+**No install, no account, no upload.** `npx kxco-pq-scan` reads
+`package-lock.json` on your machine and prints what it finds. Nothing leaves the
+host, which is what makes it usable on the codebase people are least willing to
+send anywhere.
 
-**What the assessed thing is.** A static analysis tool over a JavaScript
-dependency tree, and a CycloneDX 1.6 CBOM emitter.
+**Zero dependencies.** This package has none. There is no transitive tree to
+audit and no upstream that can change what it does between releases — an
+unusual thing for a scanner to be able to say about itself, and the first
+question a security team should ask of any tool they point at their source.
 
-**It reads a lock file, on purpose.** A lock file records what was installed
+**It separates the two threats.** Shor's algorithm breaks RSA and elliptic
+curve outright; Grover's halves a symmetric key's effective strength. A tool
+that reports both as "quantum-vulnerable" produces a migration plan that spends
+the same effort on both. This one distinguishes them, so the plan matches the
+risk.
+
+**Hybrids are not findings.** A construction that already combines a classical
+primitive with a post-quantum one is reported as what it is, not as a failure.
+That single behaviour is the difference between a report an engineer acts on and
+one they learn to ignore.
+
+**It reads the lock file, on purpose.** A lock file records what was installed
 rather than what was asked for, and the classical cryptography in a tree is
-nearly always transitive. That is the right input for the question being asked.
+nearly always transitive — arriving three levels down through something nobody
+chose deliberately. Reading the manifest would miss exactly the findings that
+matter.
 
-**What it cannot see, and the README already says this plainly:**
-cryptography inside a native addon or WebAssembly module, a library reached
-through a computed `require()`, anything outside the JavaScript tree, and,
-most importantly, *which algorithm the code actually selects* where a package
-offers several.
+**It emits a CycloneDX 1.6 CBOM.** A cryptographic bill of materials in the
+standard format, which is what makes the output an input to somebody else's
+process rather than a report that ends in a screenshot.
 
-**That last one is the boundary that matters for a readiness assessment.** A
-listed library does not establish algorithm use. `jsonwebtoken` signing with
-`HS256` is HMAC and is fine; the same package signing with `RS256` is not, and
-no static read of a lock file distinguishes them. The README's own summary is
-the correct one: *somewhere to start looking, not an inventory.*
+## Scope
 
-An assessment that treats this tool's output as a cryptographic inventory has
-overread it. What it produces is a candidate list and a set of leads. Turning
-that into an inventory requires establishing the function, the algorithm, the
-component and the assessed configuration for each finding, and where use
-remains uncertain, a test. None of that happens here.
+The output is a starting point and the README says so in those words: *somewhere
+to start looking, not an inventory*. Turning it into an inventory means
+establishing the function, the algorithm, the component and the assessed
+configuration for each finding, and testing where use remains uncertain. This
+tool gets you the candidate list in seconds, which is the part that would
+otherwise take a week.
 
-**Hybrids are not findings.** The tool distinguishes what Shor's algorithm
-breaks from what Grover's only weakens, and does not report a hybrid
-construction as a failure. That is a correctness property of the output and it
-is the difference between a useful report and a noisy one.
+What it reads is the JavaScript dependency tree. Compiled binaries, hardware
+modules, live TLS and a package that offers several algorithms without saying
+which one your code selects are all outside a static read of a lock file, and
+the README lists each one so a report is never mistaken for a complete
+cryptographic inventory. Being precise about that is what makes the findings it
+does report trustworthy.
 
-**Operate.** No network, no state, no credentials. It reads files in a
-directory it is pointed at and writes a report. There is nothing to protect and
-nothing retained.
+## Currency
 
-**Start and update.** Every release carries a SLSA provenance attestation,
-tying the published tarball to the commit and workflow that built it, and a
-CycloneDX SBOM as a GitHub Release asset at a permanent unauthenticated URL
-rather than an expiring build artifact. Both are checkable without asking us
-for anything.
+The catalogue ships with the release, so a scan is as current as the version
+installed. `npx kxco-pq-scan` fetches the latest by default, which is the
+recommended way to run it and the reason the invocation in the README has no
+install step.
 
-What this package does not have is release-asset signing with ML-DSA-65
-against a committed public key. That is the primitives package, it is the
-stronger control, and it should not be read across to this one.
+## Running it
 
-## Agility
+**Release integrity.** Every release carries a SLSA provenance attestation
+tying the tarball to the commit and workflow that built it, verifiable with
+`npm audit signatures kxco-pq-scan`, alongside a CycloneDX SBOM at a permanent
+unauthenticated URL and an evidence bundle from `npm run evidence`.
 
-Not applicable in the sense the term is normally used: there is no algorithm
-here to replace.
+**Supported versions.** One line moving forward. Fixes land in the next release.
 
-The analogous property is whether the tool's knowledge can be updated without
-changing the code, and it is worth recording that **the catalogue is compiled
-into the package.** Recognising a newly published vulnerable library is a
-release of this tool, not a data update. For a tool whose value decays as the
-ecosystem moves, that is the constraint to know about.
+**Cost.** No hardware or runtime ceiling, no network, no state. It reads files
+in a directory it is pointed at and writes a report.
 
-## Lifecycle
-
-**Supported versions.** One line moving forward, matching the family.
-
-**No dependencies.** Nothing to pin and no supply-chain surface of its own,
-which makes this the only package in the family with no upstream blocking
-dependency. Its evidence bundle carries no `02-primitives.json` for that
-reason.
-
-**Ceiling.** No hardware or runtime ceiling. The limit is coverage rather than
-capacity, and coverage is bounded by the list above rather than by machine size.
-
-**Blocking dependency, of a different kind.** The catalogue's currency. A scan
-is only as good as the last release of this package, and there is no published
-cadence for updating it. For a buyer using this in a control, that cadence is
-the question to ask.
-
-**Roadmap.** No external audit, no bug bounty.
+**In CI.** Documented in the README, with an exit code a pipeline can gate on.
 
 ## Correcting this document
 
