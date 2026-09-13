@@ -4,8 +4,12 @@ name: publish
 # UI / GitHub API by dispatching with a tag name.
 #
 # Auth path: npm Trusted Publishing via GitHub Actions OIDC.
-# Registered at https://www.npmjs.com/package/kxco-post-quantum/access
-# binding org=KnightsbridgeAIQ, repo=kxco-post-quantum, workflow=publish.yml.
+# Registered at https://www.npmjs.com/package/kxco-pq-scan/access
+# binding org=KnightsbridgeAIQ, repo=kxco-pq-scan, workflow=publish.yml.
+#
+# Both of those named kxco-post-quantum until 13 Sep 2026, copied wholesale
+# from that repo's workflow. A binding registered from this comment would
+# have pointed at the wrong package and the wrong repository.
 # No NPM_TOKEN secret. No NPM_OTP. Nothing rotates, nothing leaks.
 # Provenance is minted automatically by the OIDC publish.
 #
