@@ -81,7 +81,13 @@ jobs:
       # configured on the package's own settings page, which does not exist
       # until the package does. Once 1.0.0 is out, add the binding and delete
       # the secret.
+      # No NODE_AUTH_TOKEN. This step used to carry a long-lived NPM_TOKEN as a
+      # bootstrap fallback, described in a comment as safe to leave because the
+      # npm CLI ignores it when OIDC succeeds. It is not safe to leave: a token
+      # that can publish without a second factor is exactly what npm is removing
+      # (account changes Aug 2026, direct publish Jan 2027), and while it sat here
+      # any run that failed OIDC would silently fall back to it. Two packages in
+      # this family were published under the user account rather than through
+      # Actions for that reason. Trusted Publishing is now the only path in.
       - name: Publish (Trusted Publishing where configured, token otherwise)
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
