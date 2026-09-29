@@ -46,7 +46,7 @@
     "ASSESSMENT.md"
   ],
   "scripts": {
-    "test": "node --test test/scan.test.js test/cbom.test.js test/cbom.schema.test.js",
+    "test": "node --test test/scan.test.js test/cbom.test.js test/cbom.schema.test.js test/property.test.js",
     "evidence": "node scripts/build-evidence.mjs"
   },
   "engines": {
@@ -65,6 +65,7 @@
   },
   "devDependencies": {
     "ajv": "^8.20.0",
-    "ajv-formats": "^3.0.1"
+    "ajv-formats": "^3.0.1",
+    "fast-check": "4.10.2"
   }
 }
