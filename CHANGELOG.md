@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.1.3
+
+Documentation. No source change.
+
+**The npm page leads with what the package proves.** The first screen now says
+what a scan finds and how quickly, how it separates what Shor's algorithm breaks
+from what Grover's only weakens, the CycloneDX CBOM it emits, and where Executive
+Order 14412 and OMB M-26-15 name the cryptographic bill of materials, alongside
+the migration dates set by NIST and the UK NCSC.
+
+A family table maps every KXCO package to the job it does, and a new For
+institutions section sets out the operated services and how to reach us. The
+evidence documents are unchanged and linked from the page.
+
+The sample output is a real scan of a tree holding `elliptic`, `jsonwebtoken`,
+`bcryptjs` and `hash.js`.
+
 ## 1.1.2
 
 Documentation. No source change.

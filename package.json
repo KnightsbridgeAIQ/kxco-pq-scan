@@ -1,7 +1,7 @@
 {
   "name": "kxco-pq-scan",
-  "version": "1.1.2",
-  "description": "Find quantum-vulnerable cryptography in a JavaScript dependency tree. Separates what Shor's algorithm breaks from what Grover's only weakens, recognises hybrid constructions, and says what it cannot see.",
+  "version": "1.1.3",
+  "description": "Find quantum-vulnerable cryptography in a JavaScript dependency tree in seconds and emit a CycloneDX 1.6 CBOM. Separates what Shor's algorithm breaks from what Grover's only weakens, recognises hybrid constructions, and names who pulled each finding in.",
   "keywords": [
     "post-quantum",
     "pqc",
@@ -18,7 +18,14 @@
     "cyclonedx",
     "crypto-inventory",
     "quantum-readiness",
-    "cryptographic-bill-of-materials"
+    "cryptographic-bill-of-materials",
+    "pqc-migration",
+    "crypto-agility",
+    "cryptographic-inventory",
+    "dependency-scanner",
+    "security-scanner",
+    "lockfile",
+    "shor"
   ],
   "type": "module",
   "exports": {
