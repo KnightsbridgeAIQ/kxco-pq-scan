@@ -73,9 +73,11 @@ if (cbom) {
   if (result.reduced.length) {
     // Named, not counted as findings. Grover halves the effective key length
     // and nothing more, so AES-256 and SHA-2 are not a migration problem, and
-    // a scanner that lists them as one trains its reader to ignore it.
-    console.log(`  NOT AFFECTED, symmetric and hashing (${result.reduced.length})`)
-    console.log(`    ${result.reduced.map((r) => r.name).join(', ')}\n`)
+    // a scanner that lists them as one trains its reader to ignore it. Named
+    // once however many versions are installed; --json lists every version.
+    const names = [...new Set(result.reduced.map((r) => r.name))]
+    console.log(`  NOT AFFECTED, symmetric and hashing (${names.length})`)
+    console.log(`    ${names.join(', ')}\n`)
   }
 
   if (!broken.length && !review.length) {

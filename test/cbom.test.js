@@ -153,6 +153,31 @@ test('a different tree produces a different serial number', () => {
   assert.notEqual(a.serialNumber, b.serialNumber, 'a version bump has to move the serial')
 })
 
+// Two versions of one name are two libraries in an inventory, and the document
+// must not depend on which of them the lock file happens to list first.
+test('every installed version is its own component, and the document does not depend on lock file order', () => {
+  const entries = [
+    ['', { name: 'app', dependencies: { '@noble/curves': '^1', 'x-signer': '^1' } }],
+    ['node_modules/@noble/curves', dep('1.9.7')],
+    ['node_modules/x-signer', dep('1.0.0', { '@noble/curves': '^2' })],
+    ['node_modules/x-signer/node_modules/@noble/curves', dep('2.3.0')],
+  ]
+  const now = new Date('2026-01-01T00:00:00Z')
+  const bomOf = (list) => {
+    const dir = fixture(Object.fromEntries(list), 'app')
+    try { return toCbom(scan(dir), { now }) } finally { rmSync(dir, { recursive: true, force: true }) }
+  }
+  const bom = bomOf(entries)
+  const curves = bom.components.filter((c) => c.type === 'library' && c.name === '@noble/curves')
+  assert.deepEqual(curves.map((c) => c.purl), ['pkg:npm/%40noble/curves@1.9.7', 'pkg:npm/%40noble/curves@2.3.0'])
+  assert.deepEqual(curves.map((c) => c.properties.find((p) => p.name === 'kxco:pq-scan:pulledInBy').value), ['(root)', 'x-signer'])
+  const root = bom.dependencies.find((d) => d.ref === 'root:app')
+  assert.deepEqual(root.dependsOn, ['pkg:npm/%40noble/curves@1.9.7', 'pkg:npm/%40noble/curves@2.3.0'])
+
+  const reversed = [entries[0], ...entries.slice(1).reverse()]
+  assert.equal(JSON.stringify(bomOf(reversed)), JSON.stringify(bom))
+})
+
 test('SOURCE_DATE_EPOCH pins the timestamp', () => {
   const packages = {
     '': { name: 'app', dependencies: { 'node-forge': '^1' } },

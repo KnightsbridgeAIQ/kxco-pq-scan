@@ -77,5 +77,7 @@ export const CATALOGUE = {
 export const ENABLERS = new Set(['bn.js', 'bigi', 'elliptic-curve', 'asn1.js', 'safe-buffer'])
 
 export function classify(name) {
-  return CATALOGUE[name] ?? null
+  // Own entries only. Packages named `constructor` or `__proto__` exist, and a
+  // plain lookup would hand back what every object inherits.
+  return Object.hasOwn(CATALOGUE, name) ? CATALOGUE[name] : null
 }

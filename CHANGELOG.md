@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.5
+
+A direct dependency stays broken when a post-quantum package also uses it, and
+the exit code follows. Packages named `constructor`, `__proto__`, `toString` or
+`hasOwnProperty` scan normally. Every installed version is reported with its
+own dependents, with one CBOM component per version in an order that does not
+depend on the lock file.
+
 ## 1.1.4
 
 Documentation. No source change.
