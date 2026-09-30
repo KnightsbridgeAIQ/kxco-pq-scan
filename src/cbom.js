@@ -33,6 +33,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
 import { classify } from './catalogue.js'
+import { byVersion } from './scan.js'
 
 const SPEC_VERSION = '1.6'
 
@@ -141,17 +142,19 @@ export function toCbom(result, opts = {}) {
   // Every catalogued package the scan saw, in one list. `findings`, `pq` and
   // `reduced` overlap by design: a declared hybrid is in `findings` and in `pq`
   // at once, and that is the correct thing to say about it, so they are merged
-  // on the package name rather than concatenated.
+  // on the package and version rather than concatenated. Two installed
+  // versions of one name are two libraries.
   const packages = new Map()
   for (const group of [result.findings, result.pq, result.reduced]) {
     for (const p of group) {
-      const seen = packages.get(p.name)
+      const key = purl(p.name, p.version)
+      const seen = packages.get(key)
       if (seen) {
         // The findings copy carries `severity` and `context`; keep them.
         if (p.severity && !seen.severity) { seen.severity = p.severity; seen.context = p.context }
         continue
       }
-      packages.set(p.name, { ...p })
+      packages.set(key, { ...p })
     }
   }
 
@@ -159,7 +162,7 @@ export function toCbom(result, opts = {}) {
   const dependencies = []
   const assetRefs = new Map()   // algorithm name -> bom-ref, so it is declared once
 
-  for (const p of [...packages.values()].sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const p of [...packages.values()].sort((a, b) => a.name.localeCompare(b.name) || byVersion(a, b))) {
     const ref = purl(p.name, p.version)
 
     components.push({

@@ -34,26 +34,37 @@ const BROKEN_ONLY = NAMES.filter((n) => has(n, 'broken') && !has(n, 'pq'))
 const PQ = NAMES.filter((n) => has(n, 'pq'))
 
 // Package names the catalogue does not know. The `x-` prefix keeps them clear
-// of every catalogued and enabler name.
+// of every catalogued and enabler name. The rest are real npm names that are
+// also properties every plain object inherits (`constructor` is on the
+// registry), so a lookup that reads the prototype chain meets them.
+const BUILT_IN_NAMES = ['constructor', '__proto__', 'toString', 'hasOwnProperty', 'valueOf', 'isPrototypeOf', 'propertyIsEnumerable', 'toLocaleString']
 const filler = fc.oneof(
   fc.stringMatching(/^x-[a-z0-9][a-z0-9.-]{0,12}$/),
   fc.stringMatching(/^@x-[a-z0-9]{1,8}\/[a-z0-9][a-z0-9.-]{0,12}$/),
+  fc.constantFrom(...BUILT_IN_NAMES),
 )
 const version = fc.tuple(fc.nat(30), fc.nat(30), fc.nat(30)).map((v) => v.join('.'))
 
 // One installed package: its name and version, whether it is nested under an
 // earlier package or hoisted, which of the others it depends on, and whether
-// the project itself depends on it.
-const pkg = (name) => fc.record({
+// the project itself depends on it. `copies` are further installs of the same
+// name at other versions, each nested under another package, which is how npm
+// installs two versions of one name side by side.
+const pkg = (name, copies = fc.constant([])) => fc.record({
   name,
   version,
   under: fc.option(fc.nat(), { nil: null }),
   deps: fc.array(fc.nat(), { maxLength: 4 }),
   root: fc.boolean(),
+  copies,
 })
+const copies = fc.array(fc.record({ under: fc.nat(), version }), { maxLength: 2 })
 const anyName = fc.oneof(fc.constantFrom(...NAMES), fc.constantFrom(...ENABLERS), filler)
-const tree = fc.uniqueArray(pkg(anyName), { selector: (p) => p.name, minLength: 1, maxLength: 14 })
+const tree = fc.uniqueArray(pkg(anyName, copies), { selector: (p) => p.name, minLength: 1, maxLength: 14 })
 const fillers = fc.uniqueArray(pkg(filler), { selector: (p) => p.name, maxLength: 10 })
+
+// Set a key as an own property, `__proto__` included, as JSON.parse would.
+const own = (obj, key, value) => Object.defineProperty(obj, key, { value, enumerable: true, writable: true, configurable: true })
 
 // Turn a generated list into a lockfileVersion 3 file.
 function lockOf(pkgs, name = 'app') {
@@ -68,13 +79,31 @@ function lockOf(pkgs, name = 'app') {
     const deps = {}
     for (const d of p.deps) {
       const j = d % pkgs.length
-      if (j !== i) deps[pkgs[j].name] = '*'
+      if (j !== i) own(deps, pkgs[j].name, '*')
     }
     packages[paths[i]] = { version: p.version, ...(Object.keys(deps).length ? { dependencies: deps } : {}) }
-    if (p.root) packages[''].dependencies[p.name] = '*'
+    if (p.root) own(packages[''].dependencies, p.name, '*')
+  })
+  pkgs.forEach((p) => {
+    for (const c of p.copies) {
+      const path = `${paths[c.under % pkgs.length]}/node_modules/${p.name}`
+      if (!Object.hasOwn(packages, path)) packages[path] = { version: c.version }
+    }
   })
   return { lock: { name, lockfileVersion: 3, requires: true, packages }, paths }
 }
+
+// Every catalogued name@version the lock file installs, read back from it.
+function installedVersions(lock, cls) {
+  const out = new Set()
+  for (const [path, meta] of Object.entries(lock.packages)) {
+    if (path === '') continue
+    const name = path.slice(path.lastIndexOf('node_modules/') + 'node_modules/'.length)
+    if (!ENABLERS.has(name) && classify(name)?.classes.includes(cls)) out.add(`${name}@${meta.version}`)
+  }
+  return [...out].sort()
+}
+const versionsOf = (list) => list.map((p) => `${p.name}@${p.version}`).sort()
 
 // Scan a lock file from a directory, as the command line would.
 const DIR = mkdtempSync(join(tmpdir(), 'pqscan-prop-'))
@@ -104,9 +133,9 @@ const normal = (r) => ({
   findings: r.findings
     .map((f) => ({ name: f.name, version: f.version, severity: f.severity, algorithms: f.algorithms,
       dependents: [...f.dependents].sort(), hybrid: f.context !== null }))
-    .sort((a, b) => a.name.localeCompare(b.name)),
-  pq: r.pq.map((p) => p.name).sort(),
-  reduced: r.reduced.map((p) => p.name).sort(),
+    .sort((a, b) => a.name.localeCompare(b.name) || (a.version < b.version ? -1 : a.version > b.version ? 1 : 0)),
+  pq: versionsOf(r.pq),
+  reduced: versionsOf(r.reduced),
 })
 
 const schema = (name) => JSON.parse(readFileSync(new URL('./schema/' + name, import.meta.url), 'utf8'))
@@ -169,47 +198,49 @@ test('a known quantum-vulnerable package is always found, and attributed to the 
     }), RUNS)
 })
 
-test('Grover-only algorithms are never findings: symmetric and hash packages are named and kept out of the count', () => {
+test('Grover-only algorithms are never findings: symmetric and hash packages are named and kept out of the count, every installed version of each', () => {
   fc.assert(fc.property(tree, (pkgs) => {
-    const r = scanLock(lockOf(pkgs).lock)
-    const installed = pkgs.map((p) => p.name)
-    const catalogued = (cls) => installed.filter((n) => classify(n)?.classes.includes(cls)).sort()
-    const findings = r.findings.map((f) => f.name).sort()
-    assert.deepEqual(findings, catalogued('broken'), 'findings are exactly the Shor-broken packages')
-    assert.deepEqual(r.reduced.map((p) => p.name).sort(),
-      catalogued('reduced').filter((n) => !has(n, 'broken')), 'Grover-only packages are named')
-    for (const p of r.reduced) assert.ok(!findings.includes(p.name), `${p.name} is Grover-only and was counted`)
-    for (const n of [...findings, ...r.pq.map((p) => p.name), ...r.reduced.map((p) => p.name)]) {
-      assert.ok(!ENABLERS.has(n), `${n} is arithmetic, not cryptography`)
+    const { lock } = lockOf(pkgs)
+    const r = scanLock(lock)
+    const findings = versionsOf(r.findings)
+    assert.deepEqual(findings, installedVersions(lock, 'broken'), 'findings are exactly the Shor-broken packages, every version once')
+    assert.deepEqual(versionsOf(r.reduced),
+      installedVersions(lock, 'reduced').filter((v) => !has(v.slice(0, v.lastIndexOf('@')), 'broken')), 'Grover-only packages are named')
+    for (const p of r.reduced) assert.ok(!r.findings.some((f) => f.name === p.name), `${p.name} is Grover-only and was counted`)
+    for (const p of [...r.findings, ...r.pq, ...r.reduced]) {
+      assert.ok(!ENABLERS.has(p.name), `${p.name} is arithmetic, not cryptography`)
     }
-    assert.deepEqual(r.pq.map((p) => p.name).sort(), catalogued('pq'))
+    assert.deepEqual(versionsOf(r.pq), installedVersions(lock, 'pq'))
     return true
   }), RUNS)
 })
 
-test('a classical package reached only through post-quantum packages is review; one consumer that is not post-quantum makes it broken', () => {
+test('a classical package reached only through post-quantum packages is review; one consumer that is not post-quantum, the project included, makes it broken', () => {
   fc.assert(fc.property(
-    fc.constantFrom(...BROKEN_ONLY), fc.uniqueArray(fc.constantFrom(...PQ), { minLength: 1, maxLength: 4 }), fc.option(filler, { nil: null }),
-    (vulnerable, pqs, consumer) => {
+    fc.constantFrom(...BROKEN_ONLY), fc.uniqueArray(fc.constantFrom(...PQ), { minLength: 1, maxLength: 4 }), fc.option(filler, { nil: null }), fc.boolean(),
+    (vulnerable, pqs, consumer, direct) => {
       const packages = { '': { name: 'app', dependencies: {} }, [`node_modules/${vulnerable}`]: { version: '1.0.0' } }
       for (const p of [...pqs, ...(consumer ? [consumer] : [])]) {
-        packages[''].dependencies[p] = '*'
+        own(packages[''].dependencies, p, '*')
         packages[`node_modules/${p}`] = { version: '1.0.0', dependencies: { [vulnerable]: '*' } }
       }
+      if (direct) packages[''].dependencies[vulnerable] = '*'
       const f = scanLock({ name: 'app', lockfileVersion: 3, packages }).findings.find((x) => x.name === vulnerable)
-      if (consumer) return f.severity === 'broken' && f.context === null
+      if (consumer || direct) return f.severity === 'broken' && f.context === null
       return f.severity === 'review' && pqs.every((p) => f.context.includes(p))
     }), RUNS)
 })
 
-test('CBOM: valid CycloneDX 1.6 JSON, and byte-identical across runs with SOURCE_DATE_EPOCH set', () => {
-  fc.assert(fc.property(tree, fc.integer({ min: 0, max: 4102444800 }), (pkgs, epoch) => {
+test('CBOM: valid CycloneDX 1.6 JSON, and byte-identical across runs and lock file orderings with SOURCE_DATE_EPOCH set', () => {
+  fc.assert(fc.property(tree, fc.integer({ min: 0, max: 4102444800 }), fc.nat(), (pkgs, epoch, seed) => {
     const { lock } = lockOf(pkgs)
-    const [a, b] = withEpoch(epoch, () => [
+    const [a, b, c] = withEpoch(epoch, () => [
       JSON.stringify(toCbom(scanLock(lock)), null, 2),
       JSON.stringify(toCbom(scan(DIR)), null, 2),
+      JSON.stringify(toCbom(scanLock(reorder(lock, seed))), null, 2),
     ])
     assert.equal(a, b, 'two scans of one tree differ')
+    assert.equal(c, a, 'the same tree in another order differs')
     const doc = JSON.parse(a)
     assert.equal(doc.metadata.timestamp, new Date(epoch * 1000).toISOString().replace(/\.\d{3}Z$/, 'Z'))
     assert.ok(validate(doc), JSON.stringify(validate.errors?.slice(0, 3)))
