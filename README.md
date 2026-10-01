@@ -18,7 +18,7 @@ what was actually installed.
 - **Separates Shor from Grover.** RSA and elliptic curves are findings; AES and SHA-2, which Grover's algorithm only weakens, are named and kept out of the count.
 - **Recognises hybrids.** A classical library paired with a post-quantum one is marked for review, in line with the hybrid migration path NIST and the IETF advise.
 - **A CBOM in one command.** `--cbom` writes CycloneDX 1.6, validated against the published schema in the test suite and reproducible byte for byte with `SOURCE_DATE_EPOCH` set.
-- **Federal policy now names the CBOM.** [Executive Order 14412](https://www.federalregister.gov/documents/2026/06/25/2026-12909/securing-the-nation-against-advanced-cryptographic-attacks) s.5(d) directs CISA to publish minimum elements for a cryptographic bill of materials, and [OMB M-26-15](https://www.whitehouse.gov/wp-content/uploads/2026/06/M-26-15-Execution-of-the-Migration-to-Post-Quantum-Cryptography.pdf) calls for automated inventory tools to populate a central CBOM.
+- **Federal policy now names the CBOM.** [Executive Order 14412](https://www.federalregister.gov/documents/2026/06/25/2026-12909/securing-the-nation-against-advanced-cryptographic-attacks) s.5(d) directs CISA to publish minimum elements for a cryptographic bill of materials within 270 days, by 19 March 2027. [OMB M-26-15](https://www.whitehouse.gov/wp-content/uploads/2026/06/M-26-15-Execution-of-the-Migration-to-Post-Quantum-Cryptography.pdf) calls for automated inventory tools to populate a central CBOM, and `--cbom` writes one today.
 - **Zero dependencies.** Nothing transitive to audit, and SLSA provenance on every release.
 
 **The migration has dates.**
