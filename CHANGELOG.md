@@ -1,7 +1,6 @@
 # Changelog
 
-## Unreleased
-
+## 1.2.0
 **Every ML-DSA and ML-KEM parameter set has its OID in the CBOM.** ML-DSA-44,
 ML-DSA-87, ML-KEM-512 and ML-KEM-1024 join ML-DSA-65 and ML-KEM-768. Each carries
 the NIST CSOR registration for that exact set (`2.16.840.1.101.3.4.3.17`, `.19`;
