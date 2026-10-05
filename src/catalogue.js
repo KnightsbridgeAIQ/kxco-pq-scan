@@ -66,7 +66,7 @@ export const CATALOGUE = {
                               note: 'X25519 is the classical half of a deliberate hybrid' },
   'kxco-pq-attest':         { classes: ['pq'], algorithms: ['ML-DSA-65'] },
   'kxco-pq-hsm':            { classes: ['pq'], algorithms: ['ML-DSA-65', 'ML-KEM-768'] },
-  'kxco-pq-sdk':            { classes: ['pq'], algorithms: ['ML-DSA-65', 'ML-KEM-768'] },
+  'kxco-pq-sdk':            { classes: ['pq'], algorithms: ['ML-DSA-65', 'ML-DSA-87', 'ML-KEM-768', 'ML-KEM-1024'] },
   'liboqs-node':            { classes: ['pq'], algorithms: ['ML-KEM', 'ML-DSA'] },
   'pqclean':                { classes: ['pq'], algorithms: ['ML-KEM', 'ML-DSA'] },
 }
