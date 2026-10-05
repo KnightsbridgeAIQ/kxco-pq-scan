@@ -107,21 +107,45 @@ const ALGORITHMS = {
   // FIPS 203, 204 and 205. The OIDs are the NIST CSOR registrations and are
   // asserted only where the parameter set is named, because the OID is per
   // parameter set: there is no OID for "ML-KEM" in the abstract.
+  //
+  // id-alg-ml-kem-512/768/1024 are { kems 1, 2, 3 } and id-ml-dsa-44/65/87 are
+  // { sigAlgs 17, 18, 19 }, under nistAlgorithms 2.16.840.1.101.3.4. The NIST
+  // security category is the one FIPS 203 and FIPS 204 assign each set.
   'ML-KEM': {
     primitive: 'kem', cryptoFunctions: ['keygen', 'encapsulate', 'decapsulate'],
+  },
+  'ML-KEM-512': {
+    primitive: 'kem', cryptoFunctions: ['keygen', 'encapsulate', 'decapsulate'],
+    parameterSetIdentifier: '512', oid: '2.16.840.1.101.3.4.4.1',
+    nistQuantumSecurityLevel: 1,
   },
   'ML-KEM-768': {
     primitive: 'kem', cryptoFunctions: ['keygen', 'encapsulate', 'decapsulate'],
     parameterSetIdentifier: '768', oid: '2.16.840.1.101.3.4.4.2',
     nistQuantumSecurityLevel: 3,
   },
+  'ML-KEM-1024': {
+    primitive: 'kem', cryptoFunctions: ['keygen', 'encapsulate', 'decapsulate'],
+    parameterSetIdentifier: '1024', oid: '2.16.840.1.101.3.4.4.3',
+    nistQuantumSecurityLevel: 5,
+  },
   'ML-DSA': {
     primitive: 'signature', cryptoFunctions: ['keygen', 'sign', 'verify'],
+  },
+  'ML-DSA-44': {
+    primitive: 'signature', cryptoFunctions: ['keygen', 'sign', 'verify'],
+    parameterSetIdentifier: '44', oid: '2.16.840.1.101.3.4.3.17',
+    nistQuantumSecurityLevel: 2,
   },
   'ML-DSA-65': {
     primitive: 'signature', cryptoFunctions: ['keygen', 'sign', 'verify'],
     parameterSetIdentifier: '65', oid: '2.16.840.1.101.3.4.3.18',
     nistQuantumSecurityLevel: 3,
+  },
+  'ML-DSA-87': {
+    primitive: 'signature', cryptoFunctions: ['keygen', 'sign', 'verify'],
+    parameterSetIdentifier: '87', oid: '2.16.840.1.101.3.4.3.19',
+    nistQuantumSecurityLevel: 5,
   },
   'SLH-DSA': {
     primitive: 'signature', cryptoFunctions: ['keygen', 'sign', 'verify'],

@@ -4,7 +4,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { scan, toCbom } from '../src/index.js'
+import { scan, toCbom, CATALOGUE } from '../src/index.js'
 
 // Same hand-written lock file as the scan tests, for the same reason: a test
 // that depends on what the registry serves today fails on a day nobody changed
@@ -118,6 +118,56 @@ test('an OID is claimed only where the parameter set is known', () => {
   assert.equal(asset(bom, 'ML-DSA-65').cryptoProperties.oid, '2.16.840.1.101.3.4.3.18')
   assert.equal(asset(bom, 'ML-DSA-65').cryptoProperties.algorithmProperties.parameterSetIdentifier, '65')
   assert.equal(asset(bom, 'ML-DSA-65').cryptoProperties.algorithmProperties.nistQuantumSecurityLevel, 3)
+})
+
+// The OID is registered per parameter set, so each named set carries its own
+// and the category FIPS 203 or FIPS 204 assigns it. No catalogue entry names
+// ML-DSA-44 or ML-KEM-512 today, so a package naming all six is put in the
+// catalogue for the length of this test only.
+const NAMED_SETS = {
+  'ML-DSA-44':   { oid: '2.16.840.1.101.3.4.3.17', set: '44',   level: 2 },
+  'ML-DSA-65':   { oid: '2.16.840.1.101.3.4.3.18', set: '65',   level: 3 },
+  'ML-DSA-87':   { oid: '2.16.840.1.101.3.4.3.19', set: '87',   level: 5 },
+  'ML-KEM-512':  { oid: '2.16.840.1.101.3.4.4.1',  set: '512',  level: 1 },
+  'ML-KEM-768':  { oid: '2.16.840.1.101.3.4.4.2',  set: '768',  level: 3 },
+  'ML-KEM-1024': { oid: '2.16.840.1.101.3.4.4.3',  set: '1024', level: 5 },
+}
+
+test('every named ML-DSA and ML-KEM parameter set carries its own OID and category', () => {
+  CATALOGUE['test-every-set'] = { classes: ['pq'], algorithms: Object.keys(NAMED_SETS) }
+  try {
+    const bom = cbomOf({
+      '': { name: 'app', dependencies: { 'test-every-set': '^1' } },
+      'node_modules/test-every-set': dep('1.0.0'),
+    })
+    for (const [name, want] of Object.entries(NAMED_SETS)) {
+      const a = asset(bom, name)
+      assert.ok(a, `${name} is declared`)
+      assert.equal(a.cryptoProperties.oid, want.oid, `${name} OID`)
+      assert.equal(a.cryptoProperties.algorithmProperties.parameterSetIdentifier, want.set, `${name} parameter set`)
+      assert.equal(a.cryptoProperties.algorithmProperties.nistQuantumSecurityLevel, want.level, `${name} category`)
+      assert.equal(a.cryptoProperties.algorithmProperties.primitive,
+        name.startsWith('ML-KEM') ? 'kem' : 'signature', `${name} primitive`)
+    }
+  } finally {
+    delete CATALOGUE['test-every-set']
+  }
+})
+
+// kxco-pq-sdk re-exports the wrapper's ML-DSA-87 and ML-KEM-1024 alongside the
+// Category 3 sets, so a tree holding it provides all four.
+test('kxco-pq-sdk provides ML-DSA-87 and ML-KEM-1024 as well as the Category 3 sets', () => {
+  const bom = cbomOf({
+    '': { name: 'app', dependencies: { 'kxco-pq-sdk': '^2' } },
+    'node_modules/kxco-pq-sdk': dep('2.0.5'),
+  })
+  const row = bom.dependencies.find((d) => d.ref === 'pkg:npm/kxco-pq-sdk@2.0.5')
+  assert.deepEqual(row.provides, [
+    'crypto/algorithm/ml-dsa-65', 'crypto/algorithm/ml-dsa-87',
+    'crypto/algorithm/ml-kem-1024', 'crypto/algorithm/ml-kem-768',
+  ])
+  assert.equal(asset(bom, 'ML-DSA-87').cryptoProperties.oid, '2.16.840.1.101.3.4.3.19')
+  assert.equal(asset(bom, 'ML-KEM-1024').cryptoProperties.oid, '2.16.840.1.101.3.4.4.3')
 })
 
 test('an algorithm is declared once however many packages provide it', () => {

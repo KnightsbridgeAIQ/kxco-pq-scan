@@ -20,7 +20,7 @@ import { join } from 'node:path'
 import Ajv from 'ajv'
 import addFormats from 'ajv-formats'
 
-import { scan, toCbom } from '../src/index.js'
+import { scan, toCbom, CATALOGUE } from '../src/index.js'
 
 const schema = (name) =>
   JSON.parse(readFileSync(new URL('./schema/' + name, import.meta.url), 'utf8'))
@@ -75,6 +75,24 @@ const EVERYTHING = {
 test('a full CBOM validates against the CycloneDX 1.6 schema', () => {
   const bom = cbomOf(EVERYTHING, 'app')
   assert.ok(validate(bom), why())
+})
+
+test('every named ML-DSA and ML-KEM parameter set validates against the schema', () => {
+  CATALOGUE['test-every-set'] = {
+    classes: ['pq'],
+    algorithms: ['ML-DSA-44', 'ML-DSA-65', 'ML-DSA-87', 'ML-KEM-512', 'ML-KEM-768', 'ML-KEM-1024'],
+  }
+  try {
+    const bom = cbomOf({
+      '': { name: 'app', dependencies: { 'test-every-set': '^1', 'kxco-pq-sdk': '^2' } },
+      'node_modules/test-every-set': dep('1.0.0'),
+      'node_modules/kxco-pq-sdk': dep('2.0.5'),
+    }, 'app')
+    assert.equal(bom.components.filter((c) => c.type === 'cryptographic-asset').length, 6)
+    assert.ok(validate(bom), why())
+  } finally {
+    delete CATALOGUE['test-every-set']
+  }
 })
 
 test('an empty tree still produces a valid CBOM', () => {
