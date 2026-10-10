@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.1 (2026-10-10)
+
+Catalogue data only. No change to the API or its behaviour.
+
+- `kxco-pq-tls` is catalogued as ML-KEM-1024 with X25519 by default from 2.0.0, with ML-KEM-768 available.
+- `kxco-pq-hsm` is catalogued with ML-DSA-87, ML-DSA-65, ML-KEM-1024 and ML-KEM-768.
+- `kxco-pq-attest` is catalogued with ML-DSA-87 and ML-DSA-65 (it was ML-DSA-65 only).
+- `kxco-pq-vault` is added: ML-KEM-1024 by default from 2.0.0, ML-KEM-768 envelopes still decrypt.
+- The README points an ECDH-secured channel at the new `kxco-pq-tls` default.
+- The CBOM already carried ML-KEM-1024 with OID 2.16.840.1.101.3.4.4.3 beside ML-KEM-768 (2.16.840.1.101.3.4.4.2) since 1.2.0, so `cbom.js` is unchanged. A test now pins both OIDs for the tls and vault rows.
+
 ## 1.3.0 (2026-10-09)
 
 Runtime support. No change to the API or its behaviour.

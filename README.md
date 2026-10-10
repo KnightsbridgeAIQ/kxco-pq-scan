@@ -203,7 +203,7 @@ primitives where the runtime provides them.
 | Instead of | Look at |
 |---|---|
 | HMAC or RSA-signed webhooks | [`kxco-post-quantum-webhook`](https://www.npmjs.com/package/kxco-post-quantum-webhook) |
-| An ECDH-secured channel | [`kxco-pq-tls`](https://www.npmjs.com/package/kxco-pq-tls), ML-KEM-768 with X25519 |
+| An ECDH-secured channel | [`kxco-pq-tls`](https://www.npmjs.com/package/kxco-pq-tls), ML-KEM-1024 with X25519 by default, ML-KEM-768 available |
 | RSA or ECDSA document signing | [`kxco-pq-attest`](https://www.npmjs.com/package/kxco-pq-attest) |
 | Keys in an HSM | [`kxco-pq-hsm`](https://www.npmjs.com/package/kxco-pq-hsm) |
 
