@@ -170,6 +170,19 @@ test('kxco-pq-sdk provides ML-DSA-87 and ML-KEM-1024 as well as the Category 3 s
   assert.equal(asset(bom, 'ML-KEM-1024').cryptoProperties.oid, '2.16.840.1.101.3.4.4.3')
 })
 
+// kxco-pq-tls and kxco-pq-vault default to ML-KEM-1024 and still handle 768, so
+// a tree holding either provides both sets, each with its own OID.
+test('kxco-pq-tls and kxco-pq-vault provide ML-KEM-1024 (2.16.840.1.101.3.4.4.3) beside ML-KEM-768', () => {
+  for (const [pkg, ver] of [['kxco-pq-tls', '2.0.0'], ['kxco-pq-vault', '1.4.0']]) {
+    const bom = cbomOf({
+      '': { name: 'app', dependencies: { [pkg]: '^1' } },
+      [`node_modules/${pkg}`]: dep(ver),
+    })
+    assert.equal(asset(bom, 'ML-KEM-1024').cryptoProperties.oid, '2.16.840.1.101.3.4.4.3', pkg)
+    assert.equal(asset(bom, 'ML-KEM-768').cryptoProperties.oid, '2.16.840.1.101.3.4.4.2', pkg)
+  }
+})
+
 test('an algorithm is declared once however many packages provide it', () => {
   const bom = cbomOf({
     '': { name: 'app', dependencies: { '@noble/curves': '^2', 'elliptic': '^6' } },
