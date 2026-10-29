@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.4.0 (2026-10-29)
+
+**Findings carry the NIST IR 8547 dates.** NIST IR 8547 (final, October 2026) says NIST will deprecate all quantum-vulnerable cryptography after 2030 and disallow it after 2035.
+- Every finding in `scan()` has a `nist` field: `{ document: 'NIST IR 8547', deprecatedAfter: 2030, disallowedAfter: 2035 }`. The same object is exported as `NIST_IR_8547`.
+- In the CBOM, every quantum-vulnerable algorithm (RSA and the elliptic curves) carries a `kxco:pq-scan:nistTransition` property with the two dates.
+- The text report states the dates once, under the quantum-vulnerable heading.
+
+**`crypto-js` is catalogued with what it ships.** Beside AES and SHA-2 it ships MD5, SHA-1, RC4 and Triple DES, which are weak without a quantum computer, and it is no longer maintained. The four are in its catalogue entry and in the CBOM. SHA-1 carries the IR 8547 note that it is deprecated now and will be disallowed in FIPS-validated modules after 2030. The text report prints the note for any package in the not-affected list that has one.
+
+Development dependency: fast-uri 3.1.7 to 3.1.9 in the lockfile (GHSA-333x-w4r6-6crp, GHSA-wjr9-j795-jxcr, GHSA-xhq7-xmqj-769h and GHSA-w74x-v6f9-j3xg). It is reached only through the schema test and is not shipped.
+
 ## 1.3.1 (2026-10-10)
 
 Catalogue data only. No change to the API or its behaviour.

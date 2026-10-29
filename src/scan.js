@@ -10,6 +10,16 @@ import { join, basename } from 'node:path'
 
 import { classify, ENABLERS } from './catalogue.js'
 
+// NIST IR 8547 (final, October 2026), section 4.1.2: "NIST will deprecate all
+// quantum-vulnerable cryptography after 2030 and disallow its use under NIST
+// standards and guidelines after 2035." Tables 2 and 4 give the same two dates
+// for every quantum-vulnerable signature and key-establishment family.
+export const NIST_IR_8547 = Object.freeze({
+  document: 'NIST IR 8547',
+  deprecatedAfter: 2030,
+  disallowedAfter: 2035,
+})
+
 /** @typedef {'broken'|'reduced'|'pq'} CryptoClass */
 
 /**
@@ -86,7 +96,7 @@ export function scan(dir = process.cwd()) {
 
     if (c.classes.includes('broken')) {
       const context = hybridContext(entry, c)
-      findings.push({ ...record, severity: context ? 'review' : 'broken', context })
+      findings.push({ ...record, severity: context ? 'review' : 'broken', context, nist: NIST_IR_8547 })
     }
   }
 

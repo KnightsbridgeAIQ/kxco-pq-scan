@@ -6,6 +6,13 @@ export interface CatalogueEntry {
   note?: string
 }
 
+/** NIST IR 8547 (final, October 2026): NIST will deprecate quantum-vulnerable cryptography after 2030 and disallow it after 2035. */
+export interface NistTransition {
+  document: 'NIST IR 8547'
+  deprecatedAfter: 2030
+  disallowedAfter: 2035
+}
+
 export interface Finding {
   name: string
   version: string
@@ -13,6 +20,7 @@ export interface Finding {
   dependents: string[]
   severity: 'broken' | 'review'
   context: string | null
+  nist: NistTransition
   note?: string
 }
 
@@ -22,13 +30,14 @@ export interface ScanResult {
   total: number
   findings: Finding[]
   pq: Array<Finding & { classes: CryptoClass[] }>
-  reduced: Array<Omit<Finding, 'severity' | 'context'>>
+  reduced: Array<Omit<Finding, 'severity' | 'context' | 'nist'>>
 }
 
 export declare function scan(dir?: string): ScanResult
 export declare function classify(name: string): CatalogueEntry | null
 export declare const CATALOGUE: Record<string, CatalogueEntry>
 export declare const ENABLERS: Set<string>
+export declare const NIST_IR_8547: Readonly<NistTransition>
 
 /**
  * A CycloneDX 1.6 Cryptographic Bill of Materials. Typed loosely on purpose:
