@@ -48,8 +48,8 @@ function cbomOf(packages, name = 'fixture') {
 const dep = (version) => ({ version })
 
 // One tree carrying every shape the emitter can produce: broken, symmetric,
-// hashing, post-quantum with a parameter set and without, a declared hybrid,
-// a scoped name and an unscoped one.
+// hashing, classically weak, post-quantum with a parameter set and without, a
+// declared hybrid, a scoped name and an unscoped one.
 const EVERYTHING = {
   '': {
     name: 'app',
@@ -57,6 +57,7 @@ const EVERYTHING = {
       'node-forge': '^1', 'elliptic': '^6', '@noble/curves': '^2', '@noble/ciphers': '^2',
       '@noble/hashes': '^2', '@noble/post-quantum': '^0', 'kxco-pq-attest': '^1',
       'kxco-pq-tls': '^1', 'jsonwebtoken': '^9', 'bcryptjs': '^2', 'argon2': '^0',
+      'crypto-js': '^4',
     },
   },
   'node_modules/node-forge': dep('1.4.0'),
@@ -70,6 +71,7 @@ const EVERYTHING = {
   'node_modules/jsonwebtoken': dep('9.0.2'),
   'node_modules/bcryptjs': dep('2.4.3'),
   'node_modules/argon2': dep('0.31.2'),
+  'node_modules/crypto-js': dep('4.2.0'),
 }
 
 test('a full CBOM validates against the CycloneDX 1.6 schema', () => {

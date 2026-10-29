@@ -131,3 +131,20 @@ test('the catalogue distinguishes curves from ciphers', () => {
   assert.equal(classify('@noble/ciphers').classes.includes('broken'), false)
   assert.equal(classify('a-package-that-does-no-crypto'), null)
 })
+
+test('a quantum-vulnerable finding carries the NIST IR 8547 dates', () => {
+  const dir = fixture({
+    '': { name: 'app', dependencies: { 'elliptic': '^6' } },
+    'node_modules/elliptic': dep('6.6.1'),
+  })
+  try {
+    const [f] = scan(dir).findings
+    assert.deepEqual(f.nist, { document: 'NIST IR 8547', deprecatedAfter: 2030, disallowedAfter: 2035 })
+  } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('crypto-js names the weak algorithms it ships', () => {
+  const c = classify('crypto-js')
+  for (const a of ['SHA-1', 'MD5', 'Triple DES', 'RC4']) assert.ok(c.algorithms.includes(a), a)
+  assert.match(c.note, /MD5, SHA-1, RC4 and Triple DES/)
+})

@@ -47,8 +47,8 @@ export const CATALOGUE = {
   'web3':                   { classes: ['broken'], algorithms: ['ECDSA secp256k1'] },
   'bitcoinjs-lib':          { classes: ['broken'], algorithms: ['ECDSA secp256k1'] },
   '@peculiar/webcrypto':    { classes: ['broken', 'reduced'], algorithms: ['RSA', 'ECDSA', 'AES'] },
-  'crypto-js':              { classes: ['reduced'], algorithms: ['AES', 'SHA-2'],
-                              note: 'symmetric only, but unmaintained and worth replacing on other grounds' },
+  'crypto-js':              { classes: ['reduced'], algorithms: ['AES', 'SHA-2', 'SHA-1', 'MD5', 'Triple DES', 'RC4'],
+                              note: 'symmetric only, but it also ships MD5, SHA-1, RC4 and Triple DES, which are weak without a quantum computer, and it is no longer maintained' },
 
   // --- symmetric and hashing: reduced, not broken -------------------------
   '@noble/ciphers':         { classes: ['reduced'], algorithms: ['AES', 'ChaCha20'] },

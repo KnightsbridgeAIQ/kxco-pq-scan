@@ -254,3 +254,30 @@ test('the limits of the scan are stated in the document', () => {
   const limits = bom.metadata.properties.find((p) => p.name === 'kxco:pq-scan:limits')
   assert.ok(limits && /native addons|WebAssembly/.test(limits.value))
 })
+
+test('every quantum-vulnerable algorithm carries the NIST IR 8547 dates, and nothing else does', () => {
+  const bom = cbomOf({
+    '': { name: 'app', dependencies: { 'node-forge': '^1', '@noble/hashes': '^2', 'kxco-post-quantum': '^1' } },
+    'node_modules/node-forge': dep('1.4.0'),
+    'node_modules/@noble/hashes': dep('2.4.0'),
+    'node_modules/kxco-post-quantum': dep('1.13.0'),
+  })
+  const transition = (c) => c.properties?.find((p) => p.name === 'kxco:pq-scan:nistTransition')?.value
+  for (const name of ['RSA', 'ECDSA']) {
+    assert.match(transition(asset(bom, name)), /NIST IR 8547.*after 2030.*after 2035/, name)
+  }
+  for (const name of ['AES', 'SHA-2', 'ML-KEM', 'ML-DSA']) {
+    assert.equal(transition(asset(bom, name)), undefined, name)
+  }
+})
+
+test('crypto-js brings SHA-1, MD5, Triple DES and RC4 into the inventory, SHA-1 with its IR 8547 date', () => {
+  const bom = cbomOf({
+    '': { name: 'app', dependencies: { 'crypto-js': '^4' } },
+    'node_modules/crypto-js': dep('4.2.0'),
+  })
+  for (const name of ['SHA-1', 'MD5', 'Triple DES', 'RC4']) assert.ok(asset(bom, name), name)
+  const sha1 = asset(bom, 'SHA-1').properties.find((p) => p.name === 'kxco:pq-scan:nistTransition').value
+  assert.match(sha1, /disallowed in FIPS-validated cryptographic modules after 2030/)
+  assert.equal(asset(bom, 'MD5').cryptoProperties.algorithmProperties.nistQuantumSecurityLevel, undefined)
+})

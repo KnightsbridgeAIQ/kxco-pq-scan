@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { scan, toCbom } from '../src/index.js'
+import { scan, toCbom, NIST_IR_8547 } from '../src/index.js'
 
 const args = process.argv.slice(2)
 if (args.includes('-h') || args.includes('--help')) {
@@ -47,6 +47,7 @@ if (cbom) {
 
   if (broken.length) {
     console.log(`  QUANTUM-VULNERABLE (${broken.length})`)
+    console.log(`    ${NIST_IR_8547.document}: NIST deprecates these after ${NIST_IR_8547.deprecatedAfter} and disallows them after ${NIST_IR_8547.disallowedAfter}.`)
     for (const f of broken) {
       console.log(`    ${f.name}@${f.version}  ${f.algorithms.join(', ')}`)
       console.log(`      pulled in by: ${f.dependents.join(', ') || 'your package directly'}`)
@@ -75,7 +76,9 @@ if (cbom) {
     // and nothing more, so AES-256 and SHA-2 are not a migration problem, and
     // a scanner that lists them as one trains its reader to ignore it.
     console.log(`  NOT AFFECTED, symmetric and hashing (${result.reduced.length})`)
-    console.log(`    ${result.reduced.map((r) => r.name).join(', ')}\n`)
+    console.log(`    ${result.reduced.map((r) => r.name).join(', ')}`)
+    for (const r of result.reduced) if (r.note) console.log(`    ${r.name}: ${r.note}`)
+    console.log('')
   }
 
   if (!broken.length && !review.length) {

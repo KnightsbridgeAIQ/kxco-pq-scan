@@ -33,6 +33,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
 import { classify } from './catalogue.js'
+import { NIST_IR_8547 } from './scan.js'
 
 const SPEC_VERSION = '1.6'
 
@@ -99,6 +100,17 @@ const ALGORITHMS = {
   'SHA-2': { primitive: 'hash', cryptoFunctions: ['digest'] },
   'SHA-3': { primitive: 'hash', cryptoFunctions: ['digest'] },
   'BLAKE': { primitive: 'hash', cryptoFunctions: ['digest'] },
+
+  // Weak without a quantum computer. crypto-js ships all four.
+  'SHA-1': {
+    primitive: 'hash', cryptoFunctions: ['digest'],
+    nistIr8547: 'NIST IR 8547 (October 2026), Table 8 note 4: SHA-1 is deprecated for all ' +
+                'remaining technical applications and will be disallowed in FIPS-validated ' +
+                'cryptographic modules after 2030.',
+  },
+  'MD5':        { primitive: 'hash',          cryptoFunctions: ['digest'] },
+  'Triple DES': { primitive: 'block-cipher',  cryptoFunctions: ['encrypt', 'decrypt'] },
+  'RC4':        { primitive: 'stream-cipher', cryptoFunctions: ['encrypt', 'decrypt'] },
 
   'bcrypt': { primitive: 'kdf', cryptoFunctions: ['keyderive'] },
   'Argon2': { primitive: 'kdf', cryptoFunctions: ['keyderive'] },
@@ -295,6 +307,14 @@ function algorithmComponent(name, ref, spec) {
       ? { nistQuantumSecurityLevel: spec.nistQuantumSecurityLevel } : {}),
   }
 
+  // The transition dates NIST has set for this algorithm, where it has set
+  // any. Every quantum-vulnerable algorithm carries the IR 8547 dates.
+  const nist = spec.quantumVulnerable
+    ? `${NIST_IR_8547.document} (October 2026): NIST will deprecate all quantum-vulnerable ` +
+      `cryptography after ${NIST_IR_8547.deprecatedAfter} and disallow its use under NIST ` +
+      `standards and guidelines after ${NIST_IR_8547.disallowedAfter}.`
+    : spec.nistIr8547
+
   return {
     type: 'cryptographic-asset',
     'bom-ref': ref,
@@ -304,6 +324,7 @@ function algorithmComponent(name, ref, spec) {
       algorithmProperties,
       ...(spec.oid ? { oid: spec.oid } : {}),
     },
+    ...(nist ? { properties: [{ name: 'kxco:pq-scan:nistTransition', value: nist }] } : {}),
   }
 }
 

@@ -24,6 +24,7 @@ what was actually installed.
 **The migration has dates.**
 
 - **NIST** published [FIPS 203](https://csrc.nist.gov/pubs/fips/203/final), [FIPS 204](https://csrc.nist.gov/pubs/fips/204/final) and [FIPS 205](https://csrc.nist.gov/pubs/fips/205/final) in August 2024.
+- **NIST IR 8547** ([final, October 2026](https://csrc.nist.gov/pubs/ir/8547/final)) deprecates all quantum-vulnerable cryptography after 2030 and disallows it after 2035. Every finding, and every quantum-vulnerable algorithm in the CBOM, carries those two dates.
 - **United States:** [Executive Order 14412](https://www.federalregister.gov/documents/2026/06/25/2026-12909/securing-the-nation-against-advanced-cryptographic-attacks), signed on 22 June 2026, moves federal high-value and high-impact systems to post-quantum key establishment by 31 December 2030 and to post-quantum signatures by 31 December 2031. [OMB M-26-15](https://www.whitehouse.gov/wp-content/uploads/2026/06/M-26-15-Execution-of-the-Migration-to-Post-Quantum-Cryptography.pdf) requires PQC-agile libraries for all new applications.
 - **United Kingdom:** the [NCSC](https://www.ncsc.gov.uk/guidance/pqc-migration-timelines) sets 2028, 2031 and 2035 as its migration milestones.
 
@@ -44,6 +45,7 @@ and prints what it finds.
   typical-app: 24 packages installed
 
   QUANTUM-VULNERABLE (5)
+    NIST IR 8547: NIST deprecates these after 2030 and disallows them after 2035.
     ecdsa-sig-formatter@1.0.11  ECDSA
       pulled in by: jwa
     elliptic@6.6.1  ECDSA, ECDH
