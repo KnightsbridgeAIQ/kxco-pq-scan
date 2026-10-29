@@ -47,7 +47,7 @@ if (cbom) {
 
   if (broken.length) {
     console.log(`  QUANTUM-VULNERABLE (${broken.length})`)
-    console.log(`    ${NIST_IR_8547.document}: NIST deprecates these after ${NIST_IR_8547.deprecatedAfter} and disallows them after ${NIST_IR_8547.disallowedAfter}.`)
+    console.log(`    ${NIST_IR_8547.document}: NIST will deprecate these after ${NIST_IR_8547.deprecatedAfter} and disallow them after ${NIST_IR_8547.disallowedAfter}.`)
     for (const f of broken) {
       console.log(`    ${f.name}@${f.version}  ${f.algorithms.join(', ')}`)
       console.log(`      pulled in by: ${f.dependents.join(', ') || 'your package directly'}`)

@@ -6,7 +6,7 @@ export interface CatalogueEntry {
   note?: string
 }
 
-/** NIST IR 8547 (final, October 2026): NIST deprecates quantum-vulnerable cryptography after 2030 and disallows it after 2035. */
+/** NIST IR 8547 (final, October 2026): NIST will deprecate quantum-vulnerable cryptography after 2030 and disallow it after 2035. */
 export interface NistTransition {
   document: 'NIST IR 8547'
   deprecatedAfter: 2030

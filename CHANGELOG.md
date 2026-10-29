@@ -2,7 +2,7 @@
 
 ## 1.4.0 (2026-10-29)
 
-**Findings carry the NIST IR 8547 dates.** NIST IR 8547 (final, October 2026) deprecates all quantum-vulnerable cryptography after 2030 and disallows it after 2035.
+**Findings carry the NIST IR 8547 dates.** NIST IR 8547 (final, October 2026) says NIST will deprecate all quantum-vulnerable cryptography after 2030 and disallow it after 2035.
 - Every finding in `scan()` has a `nist` field: `{ document: 'NIST IR 8547', deprecatedAfter: 2030, disallowedAfter: 2035 }`. The same object is exported as `NIST_IR_8547`.
 - In the CBOM, every quantum-vulnerable algorithm (RSA and the elliptic curves) carries a `kxco:pq-scan:nistTransition` property with the two dates.
 - The text report states the dates once, under the quantum-vulnerable heading.
