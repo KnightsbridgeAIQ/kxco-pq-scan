@@ -9,7 +9,7 @@
 
 **`crypto-js` is catalogued with what it ships.** Beside AES and SHA-2 it ships MD5, SHA-1, RC4 and Triple DES, which are weak without a quantum computer, and it is no longer maintained. The four are in its catalogue entry and in the CBOM. SHA-1 carries the IR 8547 note that it is deprecated now and will be disallowed in FIPS-validated modules after 2030. The text report prints the note for any package in the not-affected list that has one.
 
-Development dependency: fast-uri 3.1.7 to 3.1.9 in the lockfile (GHSA-333x-w4r6-6crp). It is reached only through the schema test and is not shipped.
+Development dependency: fast-uri 3.1.7 to 3.1.9 in the lockfile (GHSA-333x-w4r6-6crp, GHSA-wjr9-j795-jxcr, GHSA-xhq7-xmqj-769h and GHSA-w74x-v6f9-j3xg). It is reached only through the schema test and is not shipped.
 
 ## 1.3.1 (2026-10-10)
 
